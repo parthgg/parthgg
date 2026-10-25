@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 const q = new URLSearchParams(location.search);
-const W = +(q.get('w') || 1080), H = +(q.get('h') || 1920), S = W / 1080;
+const W = +(q.get('w') || 1080), H = +(q.get('h') || 1920), S = Math.min(W, H) / 1080, LAND = W > H;
 const R = 6371, EXAG = 4.5;
 const BASE = [44, 14, 68, 48], DETAIL = [54, 24, 59, 28];
 const ACCENT = '#ff4b3a', ACCENT_RGB = '255,75,58';
@@ -58,7 +58,7 @@ renderer.setSize(W, H, false);
 renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 renderer.setClearColor(0x04070d, 1);
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(46, W / H, 1, 60000);
+const camera = new THREE.PerspectiveCamera(LAND ? 34 : 46, W / H, 1, 60000);
 
 const loader = new THREE.TextureLoader();
 const loadTex = url => new Promise(res => loader.load(url, t => {
@@ -166,7 +166,19 @@ function addLogDepth(mat) {
 
 // ---------- camera path ----------
 // [t, lat, lon, range km, tilt deg (0 = straight down), heading deg]
-const KEYS = [
+const KEYS_LAND = [
+  [0.0, 25.9, 56.3, 3300, 50, 2],
+  [5.0, 25.9, 56.3, 2300, 46, 1],
+  [8.2, 26.35, 56.42, 560, 22, 0],
+  [11.0, 26.45, 56.42, 340, 18, 0],
+  [13.6, 26.15, 56.4, 380, 52, -8],
+  [19.5, 26.25, 56.35, 340, 56, 4],
+  [26.0, 26.3, 56.3, 380, 50, 8],
+  [31.5, 26.3, 56.4, 1600, 22, 2],
+  [36.0, 26.2, 56.2, 1900, 12, 0],
+  [41.5, 26.3, 56.2, 2000, 10, 0],
+];
+const KEYS_PORTRAIT = [
   [0.0, 25.9, 56.3, 3300, 44, 2],
   [5.0, 25.9, 56.3, 2300, 40, 1],
   [8.2, 26.35, 56.42, 520, 22, 0],
@@ -178,6 +190,7 @@ const KEYS = [
   [36.0, 28.0, 56.4, 3700, 10, 0],
   [41.5, 28.3, 56.4, 3900, 8, 0],
 ];
+const KEYS = LAND ? KEYS_LAND : KEYS_PORTRAIT;
 function cr(p0, p1, p2, p3, t) {
   const t2 = t * t, t3 = t2 * t;
   return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
@@ -332,16 +345,16 @@ function measure(gap, t, a) {
 function statCard(t) {
   const a1 = win(t, 28.6, 35.0, 0.5, 0.6);
   if (a1 <= 0) return;
-  const y = H * 0.17;
+  const y = LAND ? H * 0.2 : H * 0.17, X = LAND ? W * 0.79 : W / 2;
   const pct = Math.round(20 * easeOut((t - 28.7) / 1.2));
-  text(`~${pct}%`, W / 2, y, { size: 120, weight: 800, alpha: a1, color: '255,255,255' });
-  text("OF THE WORLD'S OIL", W / 2, y + 86 * S, { size: 28, weight: 700, alpha: a1, spacing: 5 });
+  text(`~${pct}%`, X, y, { size: 120, weight: 800, alpha: a1, color: '255,255,255' });
+  text("OF THE WORLD'S OIL", X, y + 86 * S, { size: 28, weight: 700, alpha: a1, spacing: 5 });
   const a2 = win(t, 31.0, 35.0, 0.5, 0.6);
   const bar = 20 * easeOut((t - 31.0) / 1.4);
   ctx.save(); ctx.globalAlpha = a2;
-  ctx.fillStyle = 'rgba(8,14,24,0.7)'; roundRect(W / 2 - 300 * S, y + 140 * S, 600 * S, 92 * S, 46 * S); ctx.fill();
+  ctx.fillStyle = 'rgba(8,14,24,0.7)'; roundRect(X - 300 * S, y + 140 * S, 600 * S, 92 * S, 46 * S); ctx.fill();
   ctx.strokeStyle = `rgba(${ACCENT_RGB},0.9)`; ctx.lineWidth = 2.5 * S; ctx.stroke(); ctx.restore();
-  text(`${bar.toFixed(1)}M barrels / day`, W / 2, y + 186 * S, { size: 40, weight: 700, alpha: a2 });
+  text(`${bar.toFixed(1)}M barrels / day`, X, y + 186 * S, { size: 40, weight: 700, alpha: a2 });
 }
 
 let G = null;
@@ -442,7 +455,7 @@ function drawOverlay(t, cam) {
     const g = ctx.createLinearGradient(0, 0, 0, H * 0.42);
     g.addColorStop(0, `rgba(4,8,14,${0.75 * aT})`); g.addColorStop(1, 'rgba(4,8,14,0)');
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H * 0.42);
-    const y = H * 0.16 + (1 - easeOut((t - 35.3) / 1.0)) * 30 * S;
+    const y = (LAND ? H * 0.15 : H * 0.16) + (1 - easeOut((t - 35.3) / 1.0)) * 30 * S;
     text('Strait of Hormuz:', W / 2, y, { size: 82, weight: 800, alpha: aT });
     text('a narrow gateway with global impact', W / 2, y + 78 * S, { size: 36, weight: 500, alpha: smooth((t - 35.9) / 0.8) * 0.92 });
     text('Elevation: Copernicus DEM, AWS Terrain Tiles · Coastlines: Natural Earth', W / 2, H - 40 * S, { size: 15, weight: 500, alpha: aT * 0.6, shadow: false });
@@ -457,3 +470,18 @@ window.renderAt = function (t) {
   return true;
 };
 init();
+
+// Keep-out mask for layout analysis: map overlays + the subject (strait, Musandam, Iranian coast, lanes)
+window.maskAt = function (t) {
+  const cam = placeCamera(t);
+  drawOverlay(t, cam);
+  ctx.save(); ctx.fillStyle = 'rgba(255,0,0,1)'; ctx.strokeStyle = 'rgba(255,0,0,1)'; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  const poly = (pts, close) => { ctx.beginPath(); pts.forEach((p, i) => { const q = proj(p[0], p[1]); i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y); }); if (close) ctx.closePath(); };
+  poly(G.ov.coast.oman, true); ctx.fill();
+  ctx.lineWidth = 40 * S; poly(G.ov.coast.oman, false); ctx.stroke(); poly(G.ov.coast.iran, false); ctx.stroke();
+  for (const k of ['in', 'out']) { ctx.lineWidth = 30 * S; poly(G.ov.lanes[k].mid, false); ctx.stroke(); }
+  const c = proj(26.5, 56.45), e = proj(26.5, 56.45 + 60 / kmLon(26.5));
+  ctx.beginPath(); ctx.arc(c.x, c.y, Math.max(60 * S, Math.hypot(e.x - c.x, e.y - c.y)), 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  return ovc.toDataURL('image/png');
+};

@@ -1,6 +1,6 @@
 // Reel layer: captions, hook, illustrated inserts. Drawn on a transparent canvas and composited over the map render.
 const q = new URLSearchParams(location.search);
-const W = +(q.get('w') || 1080), H = +(q.get('h') || 1920), S = W / 1080;
+const W = +(q.get('w') || 1080), H = +(q.get('h') || 1920), S = Math.min(W, H) / 1080;
 const cv = document.getElementById('c');
 cv.width = W; cv.height = H; cv.style.width = W + 'px'; cv.style.height = H + 'px';
 const ctx = cv.getContext('2d');
@@ -180,7 +180,7 @@ function tankerInsert(t) {
   const a = win(t, 12.25, 15.9, 0.25, 0.35);
   if (a <= 0) return;
   const slide = easeOut((t - 12.25) / 0.6), out = smooth((t - 15.55) / 0.35);
-  const cx = W * 0.5 + (1 - slide) * -W * 0.8 + out * W * 0.9, cy = H * 0.5, w = 640 * S, h = 330 * S;
+  const cx = W * 0.5 + (1 - slide) * -90 * S + out * 90 * S, cy = H * 0.5, w = 640 * S, h = 330 * S;
   card(cx - w / 2, cy - h / 2, w, h, a);
   ctx.save(); ctx.globalAlpha = a;
   ctx.beginPath(); ctx.roundRect(cx - w / 2, cy - h / 2, w, h, 28 * S); ctx.clip();
@@ -238,13 +238,24 @@ let ready = false;
 (async () => {
   const words = await (await fetch('assets/words.json')).json();
   buildCaptions(words);
+  try { PL = await (await fetch(`assets/placements_${W}x${H}.json`)).json(); } catch (e) { PL = {}; }
   await document.fonts.load(`900 40px Inter`); await document.fonts.load(`800 40px Inter`); await document.fonts.load(`600 40px Inter`);
   window.__ready = true;
 })();
 
+// default design centres of each insert (placements.json moves/scales them off the main visuals)
+const DEFAULTS = { hook: [W / 2, H * 0.105 + 37 * S], tanker: [W / 2, H * 0.5], fifth: [W / 2, H * 0.5], stack: [W / 2, H * 0.49], cta: [W / 2, H * 0.655] };
+let PL = {};
+function placed(name, fn, t) {
+  const p = PL[name], d = DEFAULTS[name];
+  ctx.save();
+  if (p) { ctx.translate(p.cx, p.cy); ctx.scale(p.scale, p.scale); ctx.translate(-d[0], -d[1]); }
+  fn(t); ctx.restore();
+}
+
 window.renderAt = function (t) {
   ctx.clearRect(0, 0, W, H);
-  hook(t); tankerInsert(t); fifthInsert(t); stackInsert(t);
-  drawCaption(t); cta(t);
+  placed('hook', hook, t); placed('tanker', tankerInsert, t); placed('fifth', fifthInsert, t);
+  placed('stack', stackInsert, t); placed('cta', cta, t);
   return true;
 };
