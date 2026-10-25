@@ -9,7 +9,8 @@ const browser = await pw.chromium.launch({ args: ['--use-angle=swiftshader', '--
 const page = await browser.newPage({ viewport: { width: +w, height: +h } });
 page.on('console', m => console.log('[page]', m.text()));
 page.on('pageerror', e => console.log('[err]', e.message));
-await page.goto(`http://127.0.0.1:8765/index.html?w=${w}&h=${h}`);
+const PAGE = process.env.PAGE || 'index.html';
+await page.goto(`http://127.0.0.1:8765/${PAGE}?w=${w}&h=${h}`);
 await page.waitForFunction(() => window.__ready === true, null, { timeout: 300000 });
 await page.evaluate(() => document.fonts.ready);
 const list = times.length ? times.map(Number) : [];
@@ -18,7 +19,7 @@ const st = Date.now();
 for (const t of list) {
   await page.evaluate(t => window.renderAt(t), t);
   const name = times.length ? `t_${t.toFixed(2)}.png` : `f_${String(Math.round(t * fps)).padStart(5, '0')}.png`;
-  await page.screenshot({ path: `${out}/${name}`, type: 'png' });
+  await page.screenshot({ path: `${out}/${name}`, type: 'png', omitBackground: PAGE !== 'index.html' });
 }
 console.log('frames', list.length, 'sec/frame', ((Date.now() - st) / 1000 / list.length).toFixed(2));
 await browser.close();
