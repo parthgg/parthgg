@@ -256,6 +256,6 @@ function placed(name, fn, t) {
 window.renderAt = function (t) {
   ctx.clearRect(0, 0, W, H);
   placed('hook', hook, t); placed('tanker', tankerInsert, t); placed('fifth', fifthInsert, t);
-  placed('stack', stackInsert, t); placed('cta', cta, t);
+  placed('stack', stackInsert, t); if (W <= H) placed('cta', cta, t);
   return true;
 };
