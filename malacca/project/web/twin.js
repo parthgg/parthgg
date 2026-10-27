@@ -282,8 +282,21 @@ function drawOverlay(t) {
     tagged.forEach((s, i) => tag(pos[i], s.tag, smooth((t - 0.35 - i * 0.18) / 0.3), ...offs[i]));
     // counter
     const tc = word('hundred') - 0.2, a = smooth((t - tc) / 0.3), n = Math.round(102500 * easeOut((t - tc) / 1.3));
-    tLabel(n.toLocaleString('en-US') + '+', 90 * S, H * 0.16, { size: 120, weight: 700, align: 'left', alpha: a, spacing: 2, glow: CYAN });
-    tLabel('SHIPS THROUGH THE STRAIT IN 2025', 96 * S, H * 0.16 + 82 * S, { size: 32, weight: 700, align: 'left', alpha: a * smooth((t - tc - 0.3) / 0.3), spacing: 5, glow: '0,30,60' });
+    if (HUDONLY) {
+      const x = 110 * S, y = H * 0.12, w = 590 * S, h = 190 * S;
+      if (a > 0) {
+        ctx.save(); ctx.globalAlpha = a; ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 24 * S; ctx.shadowOffsetY = 8 * S;
+        ctx.fillStyle = 'rgba(9,17,27,0.86)'; ctx.beginPath(); ctx.roundRect(x, y, w, h, 10 * S); ctx.fill(); ctx.shadowColor = 'transparent';
+        ctx.fillStyle = '#ff9a1f'; ctx.beginPath(); ctx.roundRect(x, y, 6 * S, h, [10 * S, 0, 0, 10 * S]); ctx.fill();
+        const f = (str, yy, size, weight, color) => { ctx.font = `${weight} ${size * S}px Inter`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = color; ctx.fillText(str, x + 44 * S, yy); };
+        f(n.toLocaleString('en-US') + '+', y + 82 * S, 96, 800, '#ff9a1f');
+        ctx.globalAlpha = a * smooth((t - tc - 0.3) / 0.3); f('ships passed through in 2025', y + 152 * S, 30, 600, '#fff');
+        ctx.restore();
+      }
+    } else {
+      tLabel(n.toLocaleString('en-US') + '+', 90 * S, H * 0.16, { size: 120, weight: 700, align: 'left', alpha: a, spacing: 2, glow: CYAN });
+      tLabel('SHIPS THROUGH THE STRAIT IN 2025', 96 * S, H * 0.16 + 82 * S, { size: 32, weight: 700, align: 'left', alpha: a * smooth((t - tc - 0.3) / 0.3), spacing: 5, glow: '0,30,60' });
+    }
   } else {
     const tt = word('third') - 0.15, a = smooth((t - tt) / 0.3);
     tLabel('≈ 29%', 90 * S, H * 0.17, { size: 130, weight: 700, align: 'left', alpha: a, color: `rgb(${GOLD})`, glow: GOLD, spacing: 2 });
@@ -292,9 +305,11 @@ function drawOverlay(t) {
     tLabel('~23 MILLION BARRELS / DAY', 96 * S, H * 0.17 + 134 * S, { size: 32, weight: 600, align: 'left', alpha: b, spacing: 5, color: `rgb(${GOLD})` });
   }
   // HUD frame
+  if (!HUDONLY) {
   ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 2 * S; const m = 34 * S, l = 46 * S;
   for (const [x, y, sx, sy] of [[m, m, 1, 1], [W - m, m, -1, 1], [m, H - m, 1, -1], [W - m, H - m, -1, -1]]) { ctx.beginPath(); ctx.moveTo(x, y + sy * l); ctx.lineTo(x, y); ctx.lineTo(x + sx * l, y); ctx.stroke(); }
   ctx.restore();
+  }
   tLabel(HUDONLY ? 'Footage: Mixkit · Data: Marine Department Malaysia' : 'Illustrative 3D visualisation · Data: Marine Department Malaysia, EIA', W - 56 * S, H - 46 * S, { size: 15, weight: 600, align: 'right', alpha: 0.5, spacing: 1 });
 }
 

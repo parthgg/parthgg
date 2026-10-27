@@ -11,4 +11,6 @@ Voiceover:
 
 Facts: Phillips Channel ~2.7 km (EIA); 102,500+ ship transits in 2025 (Marine Department Malaysia, via GMA News); ~23 M bbl/day, ~29% of seaborne oil (EIA, H1 2025, via secondary reports); ~80% of China's oil imports (Foreign Policy, 2026).
 
-Shots: 3D globe map (Copernicus DEM / AWS Terrain Tiles, Natural Earth); real container-ship footage at 5.9–9.3 s from Mixkit clips 4011 and 4450 (Mixkit Stock Video Free License: commercial use allowed, no attribution required); procedural three.js oil-flow network. No AI-generated footage. Voice: Kokoro TTS. Music and SFX synthesized.
+Shots: 3D globe map (Copernicus DEM / AWS Terrain Tiles, Natural Earth); real container-ship footage at 5.9–9.3 s from Mixkit clips 4011 and 4450 (Mixkit Stock Video Free License: commercial use allowed, no attribution required); data card (29% of seaborne oil; Malacca 23.2 vs Hormuz 20.9 M bbl/day, EIA H1 2025) over a dimmed map. No AI-generated footage. Voice: Kokoro TTS. Music and SFX synthesized.
+
+Style: solid outlined routes with arrowheads, flat cards (Inter), no glow/HUD effects.
