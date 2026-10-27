@@ -9,6 +9,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 const q = new URLSearchParams(location.search);
 const W = +(q.get('w') || 1920), H = +(q.get('h') || 1080), S = Math.min(W, H) / 1080;
 const SHOT = q.get('shot') || 'C';
+const HUDONLY = q.get('hudonly') === '1';   // overlay only, for compositing over real footage
 const T0 = SHOT === 'C' ? 5.95 : 9.35;   // where this shot starts on the voiceover timeline
 const CYAN = '56,200,255', GOLD = '255,196,64';
 const clamp01 = x => Math.max(0, Math.min(1, x));
@@ -269,7 +270,7 @@ const word = (w, n = 0) => VO.words.filter(x => x.w.replace(/\(\d\)$/, '') === w
 function drawOverlay(t) {
   ctx.clearRect(0, 0, W, H);
   if (SHOT === 'C') {
-    const tagged = ships.filter(s => s.tag);
+    const tagged = HUDONLY ? [] : ships.filter(s => s.tag);
     const pos = tagged.map(s => proj(s.g.position.clone().add(new THREE.Vector3(0, 30, 0))));
     // network lines between tagged ships
     const aN = smooth((t - 0.5) / 0.5);
@@ -294,7 +295,7 @@ function drawOverlay(t) {
   ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 2 * S; const m = 34 * S, l = 46 * S;
   for (const [x, y, sx, sy] of [[m, m, 1, 1], [W - m, m, -1, 1], [m, H - m, 1, -1], [W - m, H - m, -1, -1]]) { ctx.beginPath(); ctx.moveTo(x, y + sy * l); ctx.lineTo(x, y); ctx.lineTo(x + sx * l, y); ctx.stroke(); }
   ctx.restore();
-  tLabel('Illustrative 3D visualisation · Data: Marine Department Malaysia, EIA', W - 56 * S, H - 46 * S, { size: 15, weight: 600, align: 'right', alpha: 0.5, spacing: 1 });
+  tLabel(HUDONLY ? 'Footage: Mixkit · Data: Marine Department Malaysia' : 'Illustrative 3D visualisation · Data: Marine Department Malaysia, EIA', W - 56 * S, H - 46 * S, { size: 15, weight: 600, align: 'right', alpha: 0.5, spacing: 1 });
 }
 
 window.renderAt = function (t) {
@@ -302,7 +303,7 @@ window.renderAt = function (t) {
   for (const s of ships) s.g.position.set(s.x0 + s.v * t, Math.sin(t * 1.3 + s.x0) * 0.3, s.z);
   for (const tb of tubes) tb.m.material.uniforms.prog.value = easeOut((t - tb.start) / tb.dur);
   placeCamera(t);
-  composer.render();
+  if (!HUDONLY) composer.render();
   drawOverlay(t);
   return true;
 };
