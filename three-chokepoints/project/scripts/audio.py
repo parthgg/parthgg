@@ -59,13 +59,28 @@ def tick(f=2400):
     tt = np.arange(int(0.05 * SR)) / SR; return np.sin(2 * np.pi * f * tt) * np.exp(-tt * 90)
 def alert():
     tt = np.arange(int(0.5 * SR)) / SR; return (np.sign(np.sin(2 * np.pi * 660 * tt)) * 0.3 + np.sin(2 * np.pi * 990 * tt)) * np.exp(-tt * 6)
-for c in (5.6, 15.0, 35.4, 52.8, 58.4, 66.8, 70.9, 77.8): add(sfx, whoosh(), c - 0.4, 0.4)
+for c in (5.6, 15.0, 17.3, 35.4, 38.8, 47.05, 50.3, 52.8, 58.4, 62.8, 66.8, 70.9, 77.8): add(sfx, whoosh(), c - 0.4, 0.35)
 for i in range(3): add(sfx, pop(900 + i * 90), Wd["three"][0] + i * 0.35, 0.45)
 for at in (Wd["thirty"][0], Wd["twenty"][3]): add(sfx, tick(1800), at - 0.1, 0.4)
 for at in (Wd["twenty"][2], Wd["fifth"][0], Wd["oil"][3], Wd["fifteen"][0], Wd["carrying"][0] + 0.2, Wd["eighty"][0]): add(sfx, tick(2600), at - 0.15, 0.3)
 add(sfx, alert(), Wd["attack"][0] - 0.05, 0.22)
 add(sfx, pop(700, 200, 0.12), Wd["singapore"][0], 0.4)
 for i in range(3): add(sfx, pop(500, 160, 0.14), Wd["block"][0] + 0.35 + i * 0.22, 0.5)
+# --- reference-style inserts: kinetic pops, paper swishes, typewriter
+def swish(d=0.35):
+    n = int(d * SR); x = bp(rng.standard_normal(n), 1500, 7000) * np.sin(np.linspace(0, np.pi, n)) ** 3; return x
+def typer(n=12, span=0.6):
+    out = np.zeros(int((span + 0.1) * SR))
+    for k in range(n):
+        i = int((k * span / n + rng.uniform(0, 0.02)) * SR); m = int(0.018 * SR); tt = np.arange(m) / SR
+        out[i:i + m] += hp(rng.standard_normal(m), 2500) * np.exp(-tt * 300) * rng.uniform(0.6, 1)
+    return out
+for w_, n_ in [("everything", 0), ("buy", 0), ("oil", 0), ("travels", 0), ("sea", 0)]: add(sfx, pop(1000, 420, 0.07), Wd[w_][n_] - 0.1, 0.28)
+for c in (15.0, 35.4, 58.4): add(sfx, swish(), c + 0.1, 0.5); add(sfx, swish(0.3), c + 0.4, 0.35)
+for w_, n_ in [("strait", 0), ("hormuz", 0), ("west", 0), ("bab", 0), ("mandeb", 0), ("east", 0), ("strait", 1), ("malacca", 0)]: add(sfx, pop(820, 300, 0.09), Wd[w_][n_] - 0.05, 0.4)
+add(sfx, swish(0.4), 46.95, 0.4)
+for tc in (47.3, 48.2, 49.1): add(sfx, typer(), tc + 0.1, 0.5)
+for tc in (67.6, 68.4): add(sfx, tick(2000), tc, 0.35)
 for name, x in [("vo_track", v), ("music", music), ("sfx", sfx)]:
     sf.write(f"{C}/audio/{name}.wav", np.stack([x, x], 1).astype(np.float32), SR)
 print("ok")
