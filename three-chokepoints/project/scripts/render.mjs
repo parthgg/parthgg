@@ -17,8 +17,9 @@ const list = times.length ? times.map(Number) : [];
 if (!list.length) for (let f = Math.round(t0 * fps); f < Math.round(t1 * fps); f++) list.push(f / fps);
 const st = Date.now();
 for (const t of list) {
-  await page.evaluate(t => window.renderAt(t), t);
   const name = times.length ? `t_${t.toFixed(2)}.png` : `f_${String(Math.round(t * fps)).padStart(5, '0')}.png`;
+  if (!times.length && fs.existsSync(`${out}/${name}`)) continue;
+  await page.evaluate(t => window.renderAt(t), t);
   await page.screenshot({ path: `${out}/${name}`, type: 'png', omitBackground: !!process.env.ALPHA });
 }
 console.log('frames', list.length, 'sec/frame', ((Date.now() - st) / 1000 / list.length).toFixed(2));

@@ -163,7 +163,27 @@ async function build() {
     transparent: true, depthWrite: false,
   }));
   addLogDepth(limb.material); scene.add(limb);
-  return { ov, limb };
+  // procedural cloud deck (fbm noise), fades out as the camera gets low
+  const clouds = new THREE.Mesh(new THREE.SphereGeometry(R + 12, 256, 128), new THREE.ShaderMaterial({
+    uniforms: { cloudK: { value: 1 }, camPos: hazeUniforms.camPos },
+    vertexShader: `varying vec3 vW; void main(){ vec4 w=modelMatrix*vec4(position,1.0); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`,
+    fragmentShader: `uniform float cloudK; uniform vec3 camPos; varying vec3 vW;
+      float h3(vec3 p){ p=fract(p*0.3183099+0.1); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+      float n3(vec3 x){ vec3 i=floor(x); vec3 f=fract(x); f=f*f*(3.0-2.0*f);
+        return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
+                   mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y),f.z); }
+      float fbm(vec3 p){ float a=0.5, s=0.0; for(int i=0;i<5;i++){ s+=a*n3(p); p*=2.03; a*=0.5; } return s; }
+      float fbm3(vec3 p){ float a=0.5, s=0.0; for(int i=0;i<3;i++){ s+=a*n3(p); p*=2.03; a*=0.5; } return s*1.15; }
+      void main(){ vec3 n=normalize(vW); float lat=abs(n.y);
+        vec3 q=n*7.0; q+=vec3(fbm3(n*3.0), fbm3(n*3.0+5.2), 0.0)*1.6;
+        float c=fbm(q); float band = 0.62 - 0.10*smoothstep(0.05,0.35,lat) + 0.06*smoothstep(0.45,0.8,lat);
+        float a=smoothstep(band, band+0.16, c)*0.6*cloudK;
+        vec3 v=normalize(camPos-vW); float r=max(dot(n,v),0.0); a*=smoothstep(0.0,0.25,r);
+        gl_FragColor=vec4(vec3(0.97,0.98,1.0), a); }`,
+    transparent: true, depthWrite: false,
+  }));
+  addLogDepth(clouds.material); scene.add(clouds);
+  return { ov, limb, clouds };
 }
 
 function addLogDepth(mat) {

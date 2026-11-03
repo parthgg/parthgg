@@ -59,10 +59,7 @@ def tick(f=2400):
     tt = np.arange(int(0.05 * SR)) / SR; return np.sin(2 * np.pi * f * tt) * np.exp(-tt * 90)
 def alert():
     tt = np.arange(int(0.5 * SR)) / SR; return (np.sign(np.sin(2 * np.pi * 660 * tt)) * 0.3 + np.sin(2 * np.pi * 990 * tt)) * np.exp(-tt * 6)
-for c in (5.6, 15.0, 17.3, 35.4, 38.8, 47.05, 50.3, 52.8, 58.4, 62.8, 66.8, 70.9, 77.8): add(sfx, whoosh(), c - 0.4, 0.35)
-for i in range(3): add(sfx, pop(900 + i * 90), Wd["three"][0] + i * 0.35, 0.45)
 for at in (Wd["thirty"][0], Wd["twenty"][3]): add(sfx, tick(1800), at - 0.1, 0.4)
-for at in (Wd["twenty"][2], Wd["fifth"][0], Wd["oil"][3], Wd["fifteen"][0], Wd["carrying"][0] + 0.2, Wd["eighty"][0]): add(sfx, tick(2600), at - 0.15, 0.3)
 add(sfx, alert(), Wd["attack"][0] - 0.05, 0.22)
 add(sfx, pop(700, 200, 0.12), Wd["singapore"][0], 0.4)
 for i in range(3): add(sfx, pop(500, 160, 0.14), Wd["block"][0] + 0.35 + i * 0.22, 0.5)
@@ -75,12 +72,19 @@ def typer(n=12, span=0.6):
         i = int((k * span / n + rng.uniform(0, 0.02)) * SR); m = int(0.018 * SR); tt = np.arange(m) / SR
         out[i:i + m] += hp(rng.standard_normal(m), 2500) * np.exp(-tt * 300) * rng.uniform(0.6, 1)
     return out
-for w_, n_ in [("everything", 0), ("buy", 0), ("oil", 0), ("travels", 0), ("sea", 0)]: add(sfx, pop(1000, 420, 0.07), Wd[w_][n_] - 0.1, 0.28)
-for c in (15.0, 35.4, 58.4): add(sfx, swish(), c + 0.1, 0.5); add(sfx, swish(0.3), c + 0.4, 0.35)
-for w_, n_ in [("strait", 0), ("hormuz", 0), ("west", 0), ("bab", 0), ("mandeb", 0), ("east", 0), ("strait", 1), ("malacca", 0)]: add(sfx, pop(820, 300, 0.09), Wd[w_][n_] - 0.05, 0.4)
-add(sfx, swish(0.4), 46.95, 0.4)
-for tc in (47.3, 48.2, 49.1): add(sfx, typer(), tc + 0.1, 0.5)
-for tc in (67.6, 68.4): add(sfx, tick(2000), tc, 0.35)
+
+# --- v2: soft marker ticks, odometer tick trains, low hits on the number slams, typewriter on the dispatch cards
+for i in range(3): add(sfx, tick(1500 + i * 120), Wd["three"][0] + i * 0.32, 0.3)
+def tick_train(t0, dur, n=14):
+    for k in range(n):
+        u = k / (n - 1); add(sfx, tick(2200 + 300 * u), t0 + dur * (1 - (1 - u) ** 2), 0.12 + 0.08 * (1 - u))
+for t0, d in [(24.0, 1.2), (Wd["hundred"][0] - 0.3, 1.2), (71.15, 0.9), (Wd["hormuz"][1] - 0.25, 0.9), (Wd["eighty"][0] - 0.1, 0.9)]: tick_train(t0, d)
+def hit(at, amp):
+    n = int(1.2 * SR); tt = np.arange(n) / SR
+    x = np.sin(2 * np.pi * (48 * np.exp(-tt * 4) + 34) * tt) * np.exp(-tt * 3.5) + lp(rng.standard_normal(n), 900) * np.exp(-tt * 25) * 0.35
+    add(sfx, x * amp, at, 1)
+for at, a in [(24.0, 0.55), (50.3, 0.45), (Wd["half"][0] - 0.2, 0.6), (71.15, 0.45), (Wd["fifth"][0] - 0.45, 0.3), (Wd["eighty"][0] - 0.35, 0.35), (Wd["fifteen"][0] - 0.4, 0.3)]: hit(at, a)
+for tc in (47.05 + 0.55, 47.05 + 1.4, 47.05 + 2.25): add(sfx, typer(14, 0.75), tc, 0.45)
 for name, x in [("vo_track", v), ("music", music), ("sfx", sfx)]:
     sf.write(f"{C}/audio/{name}.wav", np.stack([x, x], 1).astype(np.float32), SR)
 print("ok")
