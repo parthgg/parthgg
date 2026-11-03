@@ -1,5 +1,5 @@
 """v2 cut: ~29 shots, hard cuts, overlays composited on footage, grain + audio."""
-import os, subprocess, sys
+import os, subprocess, sys, math
 C = sys.argv[1]; D = "/home/user/parthgg/three-chokepoints"; FPS = 25; END = 89.6
 OUT = sys.argv[2] if len(sys.argv) > 2 else f"{D}/three_chokepoints_16x9.mp4"
 segs = [(0.0, 'F'), (1.9, 'F'), (3.7, 'F'), (5.6, 'W1'), (9.45, 'OV'), (11.0, 'W1'), (15.0, 'CH1'), (17.3, 'H'), (22.2, 'F'), (24.0, 'F'),
@@ -10,7 +10,7 @@ os.makedirs(f"{C}/seg", exist_ok=True)
 lst = []
 for i, (s, src) in enumerate(segs):
     e = segs[i + 1][0] if i + 1 < len(segs) else END
-    n0, n1 = round(s * FPS), round(e * FPS); n = n1 - n0
+    n0, n1 = math.floor(s * FPS + 0.5), math.floor(e * FPS + 0.5); n = n1 - n0
     out = f"{C}/seg/{i:02d}.mp4"
     def pngs(clip):
         missing = [k for k in range(n0, n1) if not os.path.exists(f"{C}/clips/{clip}/f_{k:05d}.png")]
