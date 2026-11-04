@@ -12,6 +12,11 @@ const SHOTS = {
   M1: [[62.0, 1.75, 102.6, 600, 50, 42], [63.0, 1.55, 103.0, 430, 50, 44], [67.0, 1.3, 103.55, 250, 54, 48]],
   M2: [[73.4, 6.0, 104.5, 3400, 20, 16], [75.2, 13.6, 110.0, 4900, 12, 4], [78.0, 15.0, 110.5, 5300, 10, 2]],
   W3: [[77.6, 17, 66, 10500, 8, 0], [89.8, 21, 70, 11500, 5, 0]],
+  // teaser (times on the 15 s teaser timeline)
+  TZD: [[0.3, 21, 63, 17000, 0, 0], [1.2, 23.5, 59.5, 9500, 6, -2], [2.15, 26.0, 56.9, 1800, 30, -8], [3.05, 26.52, 56.45, 430, 50, -14]],
+  TZH: [[4.9, 26.6, 56.38, 560, 34, -10], [7.1, 26.55, 56.46, 360, 42, 6]],
+  TZB: [[4.9, 12.7, 43.5, 340, 30, -8], [6.6, 12.62, 43.42, 250, 36, 4], [8.6, 13.4, 42.6, 950, 26, 10]],
+  TZM: [[4.9, 1.45, 103.35, 460, 50, 36], [7.1, 1.24, 103.72, 270, 55, 50]],
 };
 const KEYS = SHOTS[SHOT];
 
@@ -221,6 +226,24 @@ async function init() {
     RT.local = R_(ov.main, 4);
     SW.b = makeSwarm([{ rs: RT.local, lane: 3.5 }], 1300, { sigma: 4.5, speed: 16, amber: 0.35, seed: 31 });
   }
+  if (SHOT === 'TZD') {
+    SW.world = worldSwarm(1500);
+    if (ov.routes) {
+    RT.hzOut = R_([[26.3, 53.0], [26.43, 55.0], [26.42, 55.6], [26.52, 55.9], [26.66, 56.2], [26.62, 56.45], [26.42, 56.66], [26.05, 56.85], [25.55, 57.2], [24.8, 58.0], [23.6, 59.6]], 3);
+    RT.hzIn = ov.routes.slice(4).map(r => R_(r.slice().reverse().concat([[26.5, 55.6], [26.62, 56.2]]), 4));
+    SW.h = makeSwarm([{ rs: RT.hzOut, w: 2.4, lane: 2.2 }, ...RT.hzIn.map(rs => ({ rs, w: 0.8, oneWay: true, lane: 0, amber: 0.6 }))], 900, { sigma: 2.4, speed: 9, amber: 0.45, seed: 21 });
+    }
+  }
+  if (SHOT === 'TZH') {
+    RT.hzOut = R_([[26.3, 53.0], [26.43, 55.0], [26.42, 55.6], [26.52, 55.9], [26.66, 56.2], [26.62, 56.45], [26.42, 56.66], [26.05, 56.85], [25.55, 57.2], [24.8, 58.0], [23.6, 59.6]], 3);
+    RT.hzIn = ov.routes.slice(4).map(r => R_(r.slice().reverse().concat([[26.5, 55.6], [26.62, 56.2]]), 4));
+    SW.h = makeSwarm([{ rs: RT.hzOut, w: 2.4, lane: 2.2 }, ...RT.hzIn.map(rs => ({ rs, w: 0.8, oneWay: true, lane: 0, amber: 0.6 }))], 1000, { sigma: 2.4, speed: 9, amber: 0.45, seed: 21 });
+  }
+  if (SHOT === 'TZB') { RT.local = R_(ov.main, 4); SW.b = makeSwarm([{ rs: RT.local, lane: 3.5 }], 1300, { sigma: 4.5, speed: 16, amber: 0.35, seed: 31 }); }
+  if (SHOT === 'TZM') {
+    RT.local = R_(ov.main, 4); RT.malBr = ov.branches.map(b => R_(b, 6));
+    SW.m = makeSwarm([{ rs: RT.local, lane: 2.0 }], 1300, { sigma: 2.6, speed: 7, amber: 0.35, seed: 41 });
+  }
   if (SHOT === 'M1' || SHOT === 'M2') {
     RT.local = R_(ov.main, 4); RT.malBr = ov.branches.map(b => R_(b, 6));
     SW.m = makeSwarm([{ rs: RT.local, lane: 2.0 }, ...RT.malBr.map(rs => ({ rs, w: 0.8, sig: 4, lane: 6 }))], SHOT === 'M1' ? 1300 : 900,
@@ -346,7 +369,41 @@ function drawW3(t) {
   const fo = smooth((t - 88.7) / 0.9); if (fo > 0) { ctx.fillStyle = `rgba(0,0,0,${fo})`; ctx.fillRect(0, 0, W, H); }
 }
 
-const DRAW = { W1: drawW1, H: drawH, B: drawB, W2: drawW2, M1: drawM1, M2: drawM2, W3: drawW3 };
+// ---------- teaser shots: visuals only, typography is composited later ----------
+function hudBrackets(a) {
+  const m = 46 * S, L = 34 * S; ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 2 * S;
+  for (const [x, y, sx, sy] of [[m, m, 1, 1], [W - m, m, -1, 1], [m, H - m, 1, -1], [W - m, H - m, -1, -1]]) { ctx.beginPath(); ctx.moveTo(x, y + sy * L); ctx.lineTo(x, y); ctx.lineTo(x + sx * L, y); ctx.stroke(); }
+  ctx.restore();
+}
+function gapLine(A, B, k, a, col = '#fff') {
+  if (k <= 0 || a <= 0) return; const pa = proj(...A), pb = proj(...B), mx = pa.x + (pb.x - pa.x) * k, my = pa.y + (pb.y - pa.y) * k, ang = Math.atan2(pb.y - pa.y, pb.x - pa.x);
+  ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineCap = 'round'; ctx.shadowColor = 'rgba(0,0,0,.7)'; ctx.shadowBlur = 8 * S; ctx.lineWidth = 3 * S;
+  ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(mx, my); ctx.stroke();
+  for (const p of k > 0.98 ? [pa, { x: mx, y: my }] : [pa]) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(ang + Math.PI / 2); ctx.beginPath(); ctx.moveTo(-13 * S, 0); ctx.lineTo(13 * S, 0); ctx.stroke(); ctx.restore(); }
+  ctx.restore();
+}
+function drawTZD(t) {
+  const range = camAt(t)[2], kLocal = smooth((2600 - range) / 1400);
+  drawSwarm(SW.world, t * 0.6, { alpha: 1 - kLocal });
+  if (SW.h) drawSwarm(SW.h, t, { alpha: kLocal });
+  hudBrackets(1);
+  const [la, lo] = camAt(t), fmt = (v, p, n) => `${Math.abs(v).toFixed(4).padStart(8, '0')}°${v >= 0 ? p : n}`;
+  txt(`LAT ${fmt(la, 'N', 'S')}   LON ${fmt(lo, 'E', 'W')}`, 84 * S, 92 * S, { font: FM, size: 18, weight: 500, spacing: 3, color: '#e8edf2', shadow: 0.8 });
+  txt(`ALT ${String(Math.round(range)).padStart(5, '0')} KM`, W - 84 * S, 92 * S, { font: FM, size: 18, weight: 500, spacing: 3, color: AMBER, align: 'right', shadow: 0.8 });
+  const kt = smooth((t - 2.55) / 0.3); if (kt > 0) {
+    const p = proj(...HORMUZ); ctx.save(); ctx.globalAlpha = kt; ctx.strokeStyle = AMBER; ctx.lineWidth = 2 * S; const r = (60 - 30 * easeExpo((t - 2.55) / 0.4)) * S;
+    ctx.strokeRect(p.x - r, p.y - r, 2 * r, 2 * r); ctx.beginPath(); ctx.moveTo(p.x - r - 22 * S, p.y); ctx.lineTo(p.x - r, p.y); ctx.moveTo(p.x + r, p.y); ctx.lineTo(p.x + r + 22 * S, p.y); ctx.stroke(); ctx.restore();
+    txt('TARGET  ·  STRAIT OF HORMUZ', p.x + r + 32 * S, p.y + 7 * S, { font: FM, size: 18, weight: 500, spacing: 3, color: AMBER, alpha: kt, shadow: 0.8 });
+  }
+}
+function drawTZH(t) { drawSwarm(SW.h, t + 20, {}); gapLine(G.ov.gap.a, G.ov.gap.b, easeInOut((t - 5.25) / 0.5), 1); }
+function drawTZB(t) {
+  const tc = 7.5, red = smooth((t - tc) / 0.2);
+  drawSwarm(SW.b, halt(t + 40, tc + 40), { red, tail: t > tc ? Math.max(0.05, 1 - (t - tc) * 3) : 1 });
+  gapLine(G.ov.gap.a, G.ov.gap.b, easeInOut((t - 5.4) / 0.5), 1 - smooth((t - 6.5) / 0.3));
+}
+function drawTZM(t) { drawSwarm(SW.m, t + 60, {}); }
+const DRAW = { W1: drawW1, H: drawH, B: drawB, W2: drawW2, M1: drawM1, M2: drawM2, W3: drawW3, TZD: drawTZD, TZH: drawTZH, TZB: drawTZB, TZM: drawTZM };
 window.projRoutes = () => ({});
 window.renderAt = function (t) {
   T = t;
@@ -357,7 +414,7 @@ window.renderAt = function (t) {
   renderer.render(scene, camera);
   vignette(0.5);
   if (q.get('clean') !== '1') DRAW[SHOT](t);
-  if (q.get('clean') !== '1') credit('ELEVATION: COPERNICUS DEM / AWS TERRAIN TILES · NATURAL EARTH', 0.45);
+  if (q.get('clean') !== '1' && !SHOT.startsWith('TZ')) credit('ELEVATION: COPERNICUS DEM / AWS TERRAIN TILES · NATURAL EARTH', 0.45);
   return true;
 };
 init();

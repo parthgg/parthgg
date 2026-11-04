@@ -55,3 +55,14 @@ Footage: Mixkit clips 4450, 4011, 4209, 50177, 44373, 44370, 50193 and 40076 (al
 Photos (public domain, NASA Earth Observations / eol.jsc.nasa.gov): STS004-37-716 (Strait of Hormuz, 1982), ISS040-E-9362 (Iran coast, 2014), ISS013-E-44847 (Suez Canal, 2006), STS043-151-238 (Sumatra/Singapore, 1991), ISS039-E-1226 / ISS039-E-1236 (Malacca Strait ship wakes, 2014).
 Photo (CC0): "Maersk Line ship 1970s", archive.org item april19792.
 Fonts: Barlow Condensed, IBM Plex Sans/Mono, Cinzel (SIL OFL). Voice: Kokoro TTS. Music and SFX synthesized.
+
+## 15-second teaser (`teaser_15s_16x9.mp4`)
+1920x1080, 25 fps, 15.0 s, cut to a synthesized 120 BPM score. Every cut lands on a beat, and the doc's closing line ("Block any one of them…") plays over the finale.
+- 0.0 Hairline opens into a band that reveals the title. The 3D globe then plays inside the letters, and the camera zooms through the "S" into a dive from orbit to Hormuz, with a live lat/lon/alt HUD and target lock.
+- 3.0 Tanker footage with an odometer (20,000,000), and the words BARRELS / OF OIL / EVERY DAY land one per half-beat.
+- 4.6 Three bars rise as a curtain and reveal a split screen of three live 3D straits (39 KM / 26 KM / 2.7 KM). The middle panel then expands full-frame.
+- 7.0 Animated line chart: Red Sea flow 8.7M → 4.0M, with "−54%" hitting on the beat. Ships turn red and stop, with camera shake and chromatic aberration.
+- 8.4 Amber diagonal line wipe to the Cape detour (+15 DAYS). 10.0 Blur-punch into the 3D arcs. 11.0 Flash cut to "BLOCK ANY ONE / OF THEM" as the straits turn red.
+- 12.0 Strobe montage: two frames per image over footage and NASA photos.
+- 12.5 End card: a route glyph links the three straits, and the title letters resolve from blur.
+Sources in `project/teaser/` (`teaser_body.js` compositor, `TZ*` camera moves in `doc_shots.js`, `teaser_audio.py` score).
