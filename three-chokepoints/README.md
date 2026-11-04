@@ -66,3 +66,9 @@ Fonts: Barlow Condensed, IBM Plex Sans/Mono, Cinzel (SIL OFL). Voice: Kokoro TTS
 - 12.0 Strobe montage: two frames per image over footage and NASA photos.
 - 12.5 End card: a route glyph links the three straits, and the title letters resolve from blur.
 Sources in `project/teaser/` (`teaser_body.js` compositor, `TZ*` camera moves in `doc_shots.js`, `teaser_audio.py` score).
+
+## 9:16 Short (`three_straits_short_9x16.mp4`)
+1080x1920, 25 fps, 41.5 s. Built in a 3D renderer (`project/short/hero_shots.js`) with lit 3D tanker fleets and foam wakes, light pillars for oil volume, extruded metallic type rising from the sea, glowing tube arcs, 3D explosions with shockwaves, bloom, chromatic aberration, a colour grade and grain. It includes two real-footage inserts (Mixkit Free clips 4209 and 50177).
+- Voiceover: a new script (Kokoro TTS), with lines placed on the score's section hits.
+- Music: "Sanctum Resonance" by Ondrosik, from the archive.org item `Ondrosik-Free-music-catalog` (CC0). The track's own stop at 34.2 s is the pause before "Block any one of them".
+- Sound effects: USC Cinema / Sunset Editorial sound-effects collection on archive.org (items `SSE_Library_BOATS`, `SSE_Library_EXPLOSIONS`, `SSE_Library_COMMUNICATIONS`, `SSE_Library_WATER`, `SSE_Library_DESIGNED`, `GOLD_TAPE_37_Horns`), marked CC0 by the uploader. Used: ship horn, fog horn, destroyer horn, navy danger siren, bow wash, surf, heavy/single/underwater explosions, radio interference and static, and ominous rumble.
