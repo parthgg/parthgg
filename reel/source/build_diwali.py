@@ -24,12 +24,12 @@ CUT = [
     ('s09', 0.6, 8, None, 0),            # end card
 ]
 
-def text(txt, t0, t1, y, size=84, font='cg.ttf', f=0.3):
+def text(txt, t0, t1, y, size=80, font='cg.ttf', f=0.3, x=72):
     ff = os.path.join(S, 'fonts', font)
     a = f"if(lt(t,{t0:.2f}),0,if(lt(t,{t0+f:.2f}),(t-{t0:.2f})/{f},if(lt(t,{t1-f:.2f}),1,if(lt(t,{t1:.2f}),({t1:.2f}-t)/{f},0))))"
     k = f"(1-min(1,max(0,(t-{t0:.2f})/0.5)))"
     return (f"drawtext=fontfile={ff}:text='{txt}':fontsize={size}:fontcolor=white:borderw=1:bordercolor=white@0.85:"
-            f"shadowcolor=black@0.55:shadowx=0:shadowy=3:x=(w-text_w)/2:y='{y}+10*{k}*{k}':alpha='{a}'")
+            f"shadowcolor=black@0.55:shadowx=0:shadowy=3:x={x}:y='{y}+10*{k}*{k}':alpha='{a}'")
 
 def main(out):
     n = len(CUT)
@@ -53,10 +53,11 @@ def main(out):
         ('they shared it,', 'like family.', c[6] + 0.12, c[7] - 0.15),
     ]
     end_t0 = c[9] + 0.35
+    W.append(('', '', end_t0, total + 1))  # scrim only; end-card text drawn separately
     inputs = []
     for seg, *_ in CUT: inputs += ['-i', f'{SEG}/{seg}.mp4']
     inputs += ['-ss', f'{DROP - 8 * BEAT:.4f}', '-i', MUSIC]
-    for _ in W: inputs += ['-loop', '1', '-framerate', '30', '-t', '26', '-i', os.path.join(S, 'band_mid.png')]
+    for _ in W: inputs += ['-loop', '1', '-framerate', '30', '-t', '26', '-i', os.path.join(S, 'band_low.png')]
     fc = []
     for i, (seg, st, *_r) in enumerate(CUT):
         fc.append(f"[{i}:v]trim=start={st}:duration={D[i]:.4f},setpts=PTS-STARTPTS[c{i}]")
@@ -71,9 +72,10 @@ def main(out):
         fc.append(f"{prev}[bd{j}]overlay=format=auto:shortest=1[ov{j}]"); prev = f'[ov{j}]'
     texts = []
     for l1, l2, a, b in W:
-        texts += [text(l1, a, b, 560), text(l2, a + 0.3, b, 650, font='cgi.ttf')]
-    texts += [text('Happy Diwali', end_t0, total + 1, 820, size=120),
-              text('with love, from Kabila', end_t0 + 0.45, total + 1, 955, size=80, font='cgi.ttf')]
+        if not l1: continue
+        texts += [text(l1, a, b, 1300), text(l2, a + 0.3, b, 1392, font='cgi.ttf')]
+    texts += [text('Happy Diwali', end_t0, total + 1, 1250, size=116),
+              text('with love, from Kabila', end_t0 + 0.45, total + 1, 1392, size=80, font='cgi.ttf')]
     fc.append(f"{prev}vignette=angle=PI/5:mode=forward,noise=alls=3:allf=t," + ','.join(texts) +
               f",fade=t=in:st=0:d=0.2,fade=t=out:st={total-0.8:.2f}:d=0.8,format=yuv420p[v]")
     fc.append(f"[{n}:a]atrim=0:{total:.3f},asetpts=PTS-STARTPTS,afade=t=in:d=0.05,afade=t=out:st={total-1.6:.2f}:d=1.6,"
