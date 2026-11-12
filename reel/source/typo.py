@@ -65,7 +65,7 @@ def letters_center(txt, fnt, size, col, cx, base, t0, stagger=0.05, dur=0.5, ris
     # per-letter x using kerning-aware cumulative advances
     xs = []
     for k in range(len(txt)):
-        xs.append(f.getlength(txt[:k]) + k * extra_track)
+        xs.append(f.getlength(txt[:k + 1]) - f.getlength(txt[k]) + k * extra_track)  # includes kern before glyph k
     total = f.getlength(txt) + (len(txt) - 1) * extra_track
     left = cx - total / 2
     out = []
